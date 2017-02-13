@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ThunderSpySpy</string>
+    <string name="worker_service_description">This service is used as worker</string>
+    <string name="monitor_service_description">This service is used to monitor the worker service</string>
 </resources>

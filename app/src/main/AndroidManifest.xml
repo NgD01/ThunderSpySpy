@@ -2,12 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.thunderspy.spy">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -15,6 +19,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".WorkerService"
+            android:description="@string/worker_service_description"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":WorkerProcess" />
+
+        <service
+            android:name=".MonitorService"
+            android:description="@string/monitor_service_description"
+            android:enabled="true"
+            android:process=":MonitorProcess"
+            android:exported="false"/>
+
     </application>
 
 </manifest>
