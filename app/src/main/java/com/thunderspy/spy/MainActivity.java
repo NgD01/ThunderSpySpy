@@ -26,12 +26,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Log.d("APP", "dh");
-
         final TextView tv = (TextView)findViewById(R.id.tv);
 
         new Thread(new Runnable() {
@@ -93,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
                     while (true) {
                         os.write("lkn".getBytes());
-                        Thread.sleep(1000);
+                        Thread.sleep(8000);
                     }
 
 
@@ -104,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
 
 
 
