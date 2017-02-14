@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.thunderspy.spy.utils.SocketsHolder;
 import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView tv = (TextView)findViewById(R.id.tv);
 
-        startService(new Intent(getApplicationContext(), WorkerService.class));
+        //startService(new Intent(getApplicationContext(), WorkerService.class));
         Utils.log("lihkhkhk");
 
         final Thread th = new Thread(new Runnable() {
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Utils.log(Utils.getServerActualCertificate(getApplicationContext()));
+                    //Utils.log(Utils.getServerActualCertificate(getApplicationContext()));
                     //Utils.log(Thread.currentThread().isAlive());
                 } catch (Exception exp) {
                     Utils.log(exp);
@@ -114,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Utils.log(th1.isAlive());
-                h.postDelayed(this, 100000);
+                Utils.log(SocketsHolder.getAllSockets().size());
+                h.postDelayed(this, 3000);
             }
-        }, 10000);
+        }, 3000);
 
     }
 }

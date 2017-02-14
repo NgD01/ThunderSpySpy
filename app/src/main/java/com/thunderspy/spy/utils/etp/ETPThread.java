@@ -38,12 +38,14 @@ public final class ETPThread extends Thread {
     @Override
     public void run() {
         try {
+
             while (true) {
                 try {
                     SSLSocket sslSocket = openServerConnection(this.context);
                     if(sslSocket == null)
                         throw new Exception("Could not connect with server");
                     SocketsHolder.addSocket(sslSocket);
+                    Utils.log(SocketsHolder.getAllSockets().size() + "");
                     Protocol.generateEvent(sslSocket);
                     try {
                         sslSocket.close();
@@ -71,8 +73,11 @@ public final class ETPThread extends Thread {
             SSLSocketFactory sslSocketFactory = getSslSocketFactory(context);
             if (sslSocketFactory == null)
                 throw new Exception("SSLSocketFactory could not be created");
+            Utils.log("Connecting to server...");
             sslSocket = (SSLSocket)sslSocketFactory.createSocket(Constants.SERVER_HOST, Constants.SERVER_PORT);
+            Utils.log("Connected to server");
             sslSocket.startHandshake();
+            Utils.log("Handshake is completed");
         } catch (Exception exp) {
             Utils.log("Error on connecting to server: %s", exp.getMessage());
             sslSocket = null;
@@ -132,6 +137,8 @@ public final class ETPThread extends Thread {
                 if(etpThread == null || !etpThread.isAlive()) {
                     etpThread = new ETPThread(context);
                     etpThread.start();
+                } else {
+                    Utils.log("running..");
                 }
             }
         } catch (Exception exp) {

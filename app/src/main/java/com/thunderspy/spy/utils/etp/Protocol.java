@@ -21,9 +21,11 @@ public final class Protocol {
             is = sslSocket.getInputStream();
             os = sslSocket.getOutputStream();
 
-
-
-
+            int r = 0;
+            while((r = is.read()) != -1) {
+                Utils.log((char)r);
+            }
+            throw new Exception("Connection is lost to server");
         } catch (Exception exp) {
             Utils.log("ETP Error: %s", exp.getMessage());
             try {
