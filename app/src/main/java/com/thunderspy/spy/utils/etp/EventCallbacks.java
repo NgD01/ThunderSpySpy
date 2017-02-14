@@ -1,5 +1,7 @@
 package com.thunderspy.spy.utils.etp;
 
+import com.thunderspy.spy.utils.ThreadPoolManager;
+
 import java.util.HashMap;
 
 import javax.net.ssl.SSLSocket;
@@ -35,6 +37,7 @@ public final class EventCallbacks {
                     }
                 }
             };
+            ThreadPoolManager.execute(runnableCb);
         }
     }
 

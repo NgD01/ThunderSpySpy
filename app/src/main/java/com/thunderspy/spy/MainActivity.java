@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.thunderspy.spy.utils.SocketsHolder;
+import com.thunderspy.spy.utils.ThreadPoolManager;
 import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
@@ -17,6 +18,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -25,7 +29,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class MainActivity extends AppCompatActivity {
-
+    volatile int x = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,92 +37,33 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView tv = (TextView)findViewById(R.id.tv);
 
-        //startService(new Intent(getApplicationContext(), WorkerService.class));
-        Utils.log("lihkhkhk");
+        startService(new Intent(getApplicationContext(), WorkerService.class));
 
-        final Thread th = new Thread(new Runnable() {
+
+
+        Handler h = new Handler(getMainLooper());
+        Runnable r = new Runnable() {
             @Override
             public void run() {
-                try {
-
-
-                    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                    final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(getAssets().open("cert/public-cert.pem"));
-
-
-                    try {
-                        throw new CertificateExpiredException("lkjl");
-                    } catch (Exception x ) {
-                        Log.d("APP", x.getMessage());
-                    }
-
-                    SSLContext sslContext = SSLContext.getInstance("TLS");
-                    TrustManager tm = new X509TrustManager() {
-                        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                            Log.d("APP", "checking client");
-                        }
-
-                        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                            for (X509Certificate cert : chain) {
-                                Log.d("APP", "S");
-                                if(cert.equals(certificate)) {
-                                    return;
-                                }
-                            }
-                            throw new CertificateException("Not Matched");
-                        }
-
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-                    };
-
-                    sslContext.init(null, new TrustManager[] { tm }, null);
-
-                    SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-                    SSLSocket sslSocket = (SSLSocket)socketFactory.createSocket("192.168.1.102", 8000);
-                    sslSocket.startHandshake();
-
-                    InputStream is = sslSocket.getInputStream();
-                    OutputStream os = sslSocket.getOutputStream();
-
-                    while (true) {
-                        int r = is.read();
-                        Utils.log(r);
-                    }
-
-
-
-
-
-                } catch (Exception exp) {
-                    Log.d("APP", exp.getMessage());
-                }
+                //executorService.shutdownNow();
             }
-        });
-
-        final Thread th1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //Utils.log(Utils.getServerActualCertificate(getApplicationContext()));
-                    //Utils.log(Thread.currentThread().isAlive());
-                } catch (Exception exp) {
-                    Utils.log(exp);
-
-                }
-            }
-        });
-        th1.start();
-        Utils.log(th1.isAlive());
-        final Handler h = new Handler(Looper.getMainLooper());
-        h.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Utils.log(SocketsHolder.getAllSockets().size());
-                h.postDelayed(this, 3000);
-            }
-        }, 3000);
+        };
+        h.postDelayed(r, 10000);
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

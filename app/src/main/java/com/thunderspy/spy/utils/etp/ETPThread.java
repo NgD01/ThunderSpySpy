@@ -14,6 +14,8 @@ import java.security.cert.X509Certificate;
 import java.util.Objects;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -29,10 +31,8 @@ public final class ETPThread extends Thread {
     private static ETPThread etpThread = null;
     private static final Object ETP_THREAD_MUTEX = new Object();
 
-    private Context context;
+    private ETPThread() {
 
-    public ETPThread(Context context) {
-        this.context = context;
     }
 
     @Override
@@ -41,11 +41,10 @@ public final class ETPThread extends Thread {
 
             while (true) {
                 try {
-                    SSLSocket sslSocket = openServerConnection(this.context);
+                    SSLSocket sslSocket = openServerConnection();
                     if(sslSocket == null)
                         throw new Exception("Could not connect with server");
                     SocketsHolder.addSocket(sslSocket);
-                    Utils.log(SocketsHolder.getAllSockets().size() + "");
                     Protocol.generateEvent(sslSocket);
                     try {
                         sslSocket.close();
@@ -63,32 +62,38 @@ public final class ETPThread extends Thread {
             synchronized (ETP_THREAD_MUTEX) {
                 etpThread = null;
             }
-            ETPThread.setupEtpThread(context);
+            ETPThread.setupEtpThread();
         }
     }
 
-    private SSLSocket openServerConnection(Context context) {
+    private SSLSocket openServerConnection() {
         SSLSocket sslSocket = null;
         try {
-            SSLSocketFactory sslSocketFactory = getSslSocketFactory(context);
+            SSLSocketFactory sslSocketFactory = getSslSocketFactory();
             if (sslSocketFactory == null)
                 throw new Exception("SSLSocketFactory could not be created");
-            Utils.log("Connecting to server...");
+            Utils.log("Connecting to server");
             sslSocket = (SSLSocket)sslSocketFactory.createSocket(Constants.SERVER_HOST, Constants.SERVER_PORT);
             Utils.log("Connected to server");
+            Utils.log("SSL Handshake is started");
             sslSocket.startHandshake();
             Utils.log("Handshake is completed");
         } catch (Exception exp) {
             Utils.log("Error on connecting to server: %s", exp.getMessage());
+            try {
+                if(sslSocket != null) {
+                    sslSocket.close();
+                }
+            } catch (Exception exp1) {}
             sslSocket = null;
         }
         return sslSocket;
     }
 
-    private SSLSocketFactory getSslSocketFactory(Context context) {
+    private SSLSocketFactory getSslSocketFactory() {
         SSLSocketFactory sslSocketFactory = null;
         try {
-            final X509Certificate serverActualCertificate = Utils.getServerActualCertificate(context);
+            final X509Certificate serverActualCertificate = Utils.getServerActualCertificate();
             if (serverActualCertificate == null) {
                 throw new Exception("Server actual certificate is not available");
             }
@@ -131,14 +136,14 @@ public final class ETPThread extends Thread {
         return ok;
     }
 
-    public static void setupEtpThread(Context context) {
+    public static void setupEtpThread() {
         try {
             synchronized (ETP_THREAD_MUTEX) {
                 if(etpThread == null || !etpThread.isAlive()) {
-                    etpThread = new ETPThread(context);
+                    etpThread = new ETPThread();
                     etpThread.start();
                 } else {
-                    Utils.log("running..");
+                    Utils.log("ETP Thread is already running");
                 }
             }
         } catch (Exception exp) {

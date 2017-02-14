@@ -1,5 +1,6 @@
 package com.thunderspy.spy.utils.etp;
 
+import com.thunderspy.spy.utils.ThreadPoolManager;
 import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
@@ -23,7 +24,14 @@ public final class Protocol {
 
             int r = 0;
             while((r = is.read()) != -1) {
-                Utils.log((char)r);
+                if((char)r == 'A') {
+                    ThreadPoolManager.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            Utils.log(Thread.currentThread().getName());
+                        }
+                    });
+                }
             }
             throw new Exception("Connection is lost to server");
         } catch (Exception exp) {
