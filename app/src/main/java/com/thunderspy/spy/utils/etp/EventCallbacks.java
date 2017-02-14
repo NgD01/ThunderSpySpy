@@ -17,7 +17,6 @@ public final class EventCallbacks {
         callbacks.put(EventCodes.SpyEvents.APP_LOCK, new EventCallback() {
             @Override
             public void run(SSLSocket socket, HashMap<String, String> headers, byte[] data) {
-
             }
         });
 
@@ -38,6 +37,8 @@ public final class EventCallbacks {
             };
         }
     }
+
+
 
 }
 

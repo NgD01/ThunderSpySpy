@@ -1,10 +1,14 @@
 package com.thunderspy.spy;
 
+import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+
+import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,14 +32,17 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView tv = (TextView)findViewById(R.id.tv);
 
-        new Thread(new Runnable() {
+        startService(new Intent(getApplicationContext(), WorkerService.class));
+        Utils.log("lihkhkhk");
+
+        final Thread th = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
 
 
                     CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                    final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(getAssets().open("public-cert.pem"));
+                    final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(getAssets().open("cert/public-cert.pem"));
 
 
                     try {
@@ -74,21 +81,11 @@ public class MainActivity extends AppCompatActivity {
                     InputStream is = sslSocket.getInputStream();
                     OutputStream os = sslSocket.getOutputStream();
 
-                    int r;
-                    while ((r=is.read()) != -1) {
-                        final int y = r;
-                        new Handler(getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv.append((char)y + "");
-                            }
-                        });
+                    while (true) {
+                        int r = is.read();
+                        Utils.log(r);
                     }
 
-                    while (true) {
-                        os.write("lkn".getBytes());
-                        Thread.sleep(8000);
-                    }
 
 
 
@@ -97,10 +94,30 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("APP", exp.getMessage());
                 }
             }
-        }).start();
+        });
 
+        final Thread th1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Utils.log(Utils.getServerActualCertificate(getApplicationContext()));
+                    //Utils.log(Thread.currentThread().isAlive());
+                } catch (Exception exp) {
+                    Utils.log(exp);
 
-
+                }
+            }
+        });
+        th1.start();
+        Utils.log(th1.isAlive());
+        final Handler h = new Handler(Looper.getMainLooper());
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Utils.log(th1.isAlive());
+                h.postDelayed(this, 100000);
+            }
+        }, 10000);
 
     }
 }

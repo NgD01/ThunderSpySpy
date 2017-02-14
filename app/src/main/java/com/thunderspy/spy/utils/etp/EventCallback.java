@@ -2,7 +2,6 @@ package com.thunderspy.spy.utils.etp;
 
 
 import java.util.HashMap;
-
 import javax.net.ssl.SSLSocket;
 
 /**
