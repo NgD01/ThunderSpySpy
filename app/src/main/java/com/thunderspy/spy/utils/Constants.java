@@ -12,8 +12,9 @@ public final class Constants {
 
     public static String SERVER_HOST = "192.168.1.102";
     public static int SERVER_PORT = 8000;
-    public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 5000;
-    public static int INTERVAL_FOR_NEXT_START_SERVICE_MONITOR_SERVICE = 5000;
+
+    public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 10000;
+    public static int INTERVAL_FOR_NEXT_START_SERVICE_MONITOR_SERVICE = 10000;
 
     public static String SERVER_ACTUAL_CERTIFICATE_IN_STR = "-----BEGIN CERTIFICATE-----\n" +
             "MIIDiDCCAnACCQCvVofKjGN8NDANBgkqhkiG9w0BAQsFADCBhTELMAkGA1UEBhMC\n" +

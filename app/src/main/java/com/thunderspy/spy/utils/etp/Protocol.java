@@ -33,6 +33,8 @@ public final class Protocol {
                     });
                 }
             }
+
+
             throw new Exception("Connection is lost to server");
         } catch (Exception exp) {
             Utils.log("ETP Error: %s", exp.getMessage());

