@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         final TextView tv = (TextView)findViewById(R.id.tv);
 
         startService(new Intent(getApplicationContext(), WorkerService.class));
-
+        startService(new Intent(getApplicationContext(), MonitorService.class));
 
 
         Handler h = new Handler(getMainLooper());

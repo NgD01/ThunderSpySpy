@@ -54,7 +54,12 @@ public final class ETPThread extends Thread {
                     throw new Exception("Connection is lost to server or thread is interrupted");
                 } catch (Exception exp) {
                     Utils.log("ETP error: %s", exp.getMessage());
-                    Thread.sleep(Constants.INTERVAL_FOR_NEXT_SERVER_CONNECTION);
+                    try {
+                        Thread.interrupted();
+                        Thread.sleep(Constants.INTERVAL_FOR_NEXT_SERVER_CONNECTION);
+                    } catch (Exception exp1){
+                        Thread.interrupted();
+                    }
                 }
             }
         } catch (Exception exp) {
