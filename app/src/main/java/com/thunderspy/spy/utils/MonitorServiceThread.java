@@ -2,6 +2,8 @@ package com.thunderspy.spy.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Toast;
+import android.os.Handler;
 
 import com.thunderspy.spy.MonitorService;
 import com.thunderspy.spy.WorkerService;

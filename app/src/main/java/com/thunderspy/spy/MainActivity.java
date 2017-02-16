@@ -3,6 +3,7 @@ package com.thunderspy.spy;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.IntegerRes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +20,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -33,27 +35,35 @@ public class MainActivity extends AppCompatActivity {
     volatile int x = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ApplicationContextManager.initApplicationContext(this.getApplicationContext());
+        try {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            ApplicationContextManager.initApplicationContext(this.getApplicationContext());
 
 
 
-        final TextView tv = (TextView)findViewById(R.id.tv);
+            final TextView tv = (TextView)findViewById(R.id.tv);
 
-        startService(new Intent(getApplicationContext(), WorkerService.class));
-        startService(new Intent(getApplicationContext(), MonitorService.class));
+            startService(new Intent(getApplicationContext(), WorkerService.class));
+            startService(new Intent(getApplicationContext(), MonitorService.class));
 
 
-        Handler h = new Handler(getMainLooper());
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                //executorService.shutdownNow();
-            }
-        };
-        h.postDelayed(r, 10000);
+            Handler h = new Handler(getMainLooper());
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    //executorService.shutdownNow();
+                }
+            };
+            h.postDelayed(r, 10000);
 
+
+
+            Utils.log(Integer.parseInt(Long.MAX_VALUE + ""));
+
+        } catch (Exception exp) {
+            Utils.log("Activity Error: %s", exp.getMessage());
+        }
     }
 }
 
