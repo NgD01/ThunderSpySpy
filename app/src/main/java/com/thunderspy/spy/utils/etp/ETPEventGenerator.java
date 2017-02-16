@@ -18,10 +18,10 @@ public final class ETPEventGenerator {
     private int howMuchDataBytesProcessed;
 
     private String nextHeaderLine;
-    private HashMap<String, String> headers;
+    private HashMap<String, String> nextEventHeaders;
 
     private int nextEventDataBufferIndex;
-    private byte[] eventDataBuffer;
+    private byte[] nextEventDataBuffer;
 
     public ETPEventGenerator(SSLSocket sslSocket) {
         this.sslSocket = sslSocket;
@@ -31,9 +31,9 @@ public final class ETPEventGenerator {
         this.howMuchDataBytesProcessed = 0;
 
         this.nextHeaderLine = "";
-        this.headers = null;
+        this.nextEventHeaders = null;
 
-        this.eventDataBuffer = null;
+        this.nextEventDataBuffer = null;
         this.nextEventDataBufferIndex = 0;
     }
 
@@ -64,7 +64,7 @@ public final class ETPEventGenerator {
             if (!nowNextEventGenerating) {
                 nowNextEventGenerating = true;
                 nowHeadersGenerating = true;
-                headers = new HashMap<String, String>();
+                nextEventHeaders = new HashMap<String, String>();
             }
             if(nowHeadersGenerating) {
                 int currentOffset = offset;
@@ -72,6 +72,7 @@ public final class ETPEventGenerator {
                 int lfFoundIndex;
                 while (true) {
                     lfFoundIndex = searchLFByte(data, currentOffset, currentOffset + availableDataLength);
+
                     if(lfFoundIndex == -1) {
                         if(availableDataLength == 0)
                             break;
@@ -81,28 +82,29 @@ public final class ETPEventGenerator {
                         break;
                     } else {
                         nextHeaderLine = nextHeaderLine.concat(new String(data, currentOffset, lfFoundIndex - currentOffset, "UTF-8"));
+
                         if(nextHeaderLine.length() == 0) {
                             if(!checkRequiredHeaders())
                                 return false;
                             int safeEventDataLength = getSafeEventDataLength();
                             if (safeEventDataLength == -1)
                                 return false;
-                            eventDataBuffer = new byte[safeEventDataLength];
+                            nextEventDataBuffer = new byte[safeEventDataLength];
                             nextEventDataBufferIndex = 0;
 
                             availableDataLength = availableDataLength - ((lfFoundIndex - currentOffset) + 1);
                             currentOffset = lfFoundIndex + 1;
-                            int requiredDataBytesLength = (eventDataBuffer.length - nextEventDataBufferIndex);
+                            int requiredDataBytesLength = (nextEventDataBuffer.length - nextEventDataBufferIndex);
 
                             if (availableDataLength >= requiredDataBytesLength) {
-                                System.arraycopy(data, currentOffset, eventDataBuffer, nextEventDataBufferIndex, requiredDataBytesLength);
+                                System.arraycopy(data, currentOffset, nextEventDataBuffer, nextEventDataBufferIndex, requiredDataBytesLength);
                                 availableDataLength = availableDataLength - requiredDataBytesLength;
                                 currentOffset = currentOffset + requiredDataBytesLength;
                                 boolean done = emitEventNow();
                                 if (!done)
                                     return false;
                             } else {
-                                System.arraycopy(data, currentOffset, eventDataBuffer, nextEventDataBufferIndex, availableDataLength);
+                                System.arraycopy(data, currentOffset, nextEventDataBuffer, nextEventDataBufferIndex, availableDataLength);
                                 nextEventDataBufferIndex = nextEventDataBufferIndex + availableDataLength;
                                 currentOffset = currentOffset + availableDataLength;
                                 availableDataLength = 0;
@@ -118,10 +120,12 @@ public final class ETPEventGenerator {
                             String headerKey = headerParts[0].trim().toLowerCase();
                             String headerValue = headerParts[1].trim();
                             /*
-                             * Ignore empty and only spcae chars key and value like-> " :   ", ":", "    :   " headers.
+                             * Ignore empty and only spaces chars key like-> " : lkk\n", ":", "    :   " nextEventHeaders.
+                             * but "key1:   \n", etc applicable
+                             * header value can be only space or empty
                              */
-                            if(!headerKey.isEmpty() && !headerValue.isEmpty()) {
-                                headers.put(headerKey, headerValue);
+                            if(!headerKey.isEmpty()) {
+                                nextEventHeaders.put(headerKey, headerValue);
                             }
                             nextHeaderLine = "";
                             availableDataLength = availableDataLength - ((lfFoundIndex - currentOffset) + 1);
@@ -131,19 +135,21 @@ public final class ETPEventGenerator {
                 }
                 howMuchDataBytesProcessed = length - availableDataLength;
             } else {
-                int requiredDataBytesLength = (eventDataBuffer.length - nextEventDataBufferIndex);
+                int requiredDataBytesLength = (nextEventDataBuffer.length - nextEventDataBufferIndex);
                 if (data.length >= requiredDataBytesLength) {
-                    System.arraycopy(data, offset, eventDataBuffer, nextEventDataBufferIndex, requiredDataBytesLength);
+                    System.arraycopy(data, offset, nextEventDataBuffer, nextEventDataBufferIndex, requiredDataBytesLength);
                     howMuchDataBytesProcessed = requiredDataBytesLength;
                     boolean done = emitEventNow();
                     if (!done)
                         return false;
                 } else {
-                    System.arraycopy(data, offset, eventDataBuffer, nextEventDataBufferIndex, data.length);
+                    System.arraycopy(data, offset, nextEventDataBuffer, nextEventDataBufferIndex, data.length);
                     nextEventDataBufferIndex = nextEventDataBufferIndex + data.length;
                     howMuchDataBytesProcessed = data.length;
                 }
             }
+
+            processed = true;
         } catch (Exception exp) {
             Utils.log("Error in generating next ETP event: %s", exp.getMessage());
             processed = false;
@@ -165,11 +171,11 @@ public final class ETPEventGenerator {
     }
 
     private boolean checkRequiredHeaders() {
-        if(headers == null)
+        if(nextEventHeaders == null)
             return false;
-        if(!headers.containsKey(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_CODE.toLowerCase()))
+        if(!nextEventHeaders.containsKey(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_CODE.toLowerCase()))
             return false;
-        if(!headers.containsKey(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH.toLowerCase()))
+        if(!nextEventHeaders.containsKey(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH.toLowerCase()))
             return false;
         return true;
     }
@@ -179,13 +185,12 @@ public final class ETPEventGenerator {
      * @return  null if not found particular header
      */
     private String getEventCode() {
-        if(headers == null)
+        if(nextEventHeaders == null)
             return null;
         /*
          * If exists then return value or otherwise null
          */
-
-        return headers.get(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_CODE.toLowerCase());
+        return nextEventHeaders.get(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_CODE.toLowerCase());
     }
 
     /**
@@ -193,9 +198,9 @@ public final class ETPEventGenerator {
      * @return  -1 if not found the particular header or any other error occurred or eventDataLength exceeds MAXIMUM VALUE.
      */
     private int getSafeEventDataLength() {
-        if (headers == null)
+        if (nextEventHeaders == null)
             return -1;
-        String eventDataLengthStr = headers.get(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH.toLowerCase());
+        String eventDataLengthStr = nextEventHeaders.get(Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH.toLowerCase());
         if(eventDataLengthStr == null)
             return -1;
         try {
@@ -219,16 +224,16 @@ public final class ETPEventGenerator {
             String eventCode = getEventCode();
             if (eventCode == null)
                 return false;
-            EventCallbacks.execute(eventCode, sslSocket, headers, eventDataBuffer);
+            EventCallbacks.execute(eventCode, sslSocket, nextEventHeaders, nextEventDataBuffer);
 
             nowNextEventGenerating = false;
             nowHeadersGenerating = true;
             howMuchDataBytesProcessed = 0;
 
             nextHeaderLine = "";
-            headers = null;
+            nextEventHeaders = null;
 
-            eventDataBuffer = null;
+            nextEventDataBuffer = null;
             nextEventDataBufferIndex = 0;
 
             done = true;

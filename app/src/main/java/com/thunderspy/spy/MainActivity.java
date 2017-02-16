@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-            Utils.log(Integer.parseInt(Long.MAX_VALUE + ""));
+            Utils.log("kk: ".split(":").length);
 
         } catch (Exception exp) {
             Utils.log("Activity Error: %s", exp.getMessage());

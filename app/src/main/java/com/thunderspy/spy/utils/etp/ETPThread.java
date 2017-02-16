@@ -82,7 +82,7 @@ public final class ETPThread extends Thread {
             Utils.log("Connected to server");
             Utils.log("SSL Handshake is started");
             sslSocket.startHandshake();
-            Utils.log("Handshake is completed");
+            Utils.log("SSL Handshake is completed");
         } catch (Exception exp) {
             Utils.log("Error on connecting to server: %s", exp.getMessage());
             try {

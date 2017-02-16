@@ -13,7 +13,7 @@ public final class Constants {
     public static String SERVER_HOST = "192.168.1.102";
     public static int SERVER_PORT = 8000;
 
-    public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 60 * 1000;
+    public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 10 * 1000;
     public static int INTERVAL_FOR_NEXT_START_SERVICE_MONITOR_SERVICE = 60 * 1000;
     public static int SOCKET_STREAM_BUFFER_SIZE = 1024*1024;
     public static String ETP_PROTOCOL_HEADER_NAME_EVENT_CODE = "Event-Code";
