@@ -48,18 +48,7 @@ public class MainActivity extends AppCompatActivity {
             startService(new Intent(getApplicationContext(), MonitorService.class));
 
 
-            Handler h = new Handler(getMainLooper());
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    //executorService.shutdownNow();
-                }
-            };
-            h.postDelayed(r, 10000);
-
-
-
-            Utils.log("kk: ".split(":").length);
+            Utils.log("%s", null);
 
         } catch (Exception exp) {
             Utils.log("Activity Error: %s", exp.getMessage());

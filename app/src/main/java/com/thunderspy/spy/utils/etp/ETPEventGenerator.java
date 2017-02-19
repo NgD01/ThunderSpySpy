@@ -44,8 +44,10 @@ public final class ETPEventGenerator {
             int totalAvailableDataBytesLength = length;
             while (totalAvailableDataBytesLength > 0) {
                 processed = generateNextEvent(data, offset + (length - totalAvailableDataBytesLength), totalAvailableDataBytesLength);
-                if(!processed)
+                if(!processed) {
+                    Utils.log("Error in generating event");
                     return false;
+                }
                 totalAvailableDataBytesLength = totalAvailableDataBytesLength - howMuchDataBytesProcessed;
             }
 
@@ -64,6 +66,7 @@ public final class ETPEventGenerator {
             if (!nowNextEventGenerating) {
                 nowNextEventGenerating = true;
                 nowHeadersGenerating = true;
+                nextHeaderLine = "";
                 nextEventHeaders = new HashMap<String, String>();
             }
             if(nowHeadersGenerating) {
@@ -76,19 +79,31 @@ public final class ETPEventGenerator {
                     if(lfFoundIndex == -1) {
                         if(availableDataLength == 0)
                             break;
+                        if((nextHeaderLine.length() + availableDataLength) > Constants.ETP_PROTOCOL_MAX_HEADER_LINE_LENGTH) {
+                            Utils.log("ETP Error: header line length exceeds the maximum value");
+                            return false;
+                        }
                         nextHeaderLine = nextHeaderLine.concat(new String(data, currentOffset, availableDataLength, "UTF-8"));
                         currentOffset = currentOffset + availableDataLength;
                         availableDataLength = 0;
                         break;
                     } else {
+                        if((nextHeaderLine.length() + (lfFoundIndex - currentOffset)) > Constants.ETP_PROTOCOL_MAX_HEADER_LINE_LENGTH) {
+                            Utils.log("ETP Error: header line length exceeds the maximum value");
+                            return false;
+                        }
                         nextHeaderLine = nextHeaderLine.concat(new String(data, currentOffset, lfFoundIndex - currentOffset, "UTF-8"));
 
                         if(nextHeaderLine.length() == 0) {
-                            if(!checkRequiredHeaders())
+                            if(!checkRequiredHeaders()) {
+                                Utils.log("ETP Error: required headers are not found");
                                 return false;
+                            }
                             int safeEventDataLength = getSafeEventDataLength();
-                            if (safeEventDataLength == -1)
+                            if (safeEventDataLength == -1) {
+                                Utils.log("ETP Error: event data length exceeds the maximum value");
                                 return false;
+                            }
                             nextEventDataBuffer = new byte[safeEventDataLength];
                             nextEventDataBufferIndex = 0;
 
@@ -101,8 +116,10 @@ public final class ETPEventGenerator {
                                 availableDataLength = availableDataLength - requiredDataBytesLength;
                                 currentOffset = currentOffset + requiredDataBytesLength;
                                 boolean done = emitEventNow();
-                                if (!done)
+                                if (!done) {
+                                    Utils.log("ETP Error: event could not be emitted");
                                     return false;
+                                }
                             } else {
                                 System.arraycopy(data, currentOffset, nextEventDataBuffer, nextEventDataBufferIndex, availableDataLength);
                                 nextEventDataBufferIndex = nextEventDataBufferIndex + availableDataLength;
@@ -115,6 +132,7 @@ public final class ETPEventGenerator {
                         } else {
                             String[] headerParts = nextHeaderLine.split(":");
                             if(headerParts.length != 2) {
+                                Utils.log("ETP Error: Invalid header line format");
                                 return false;
                             }
                             String headerKey = headerParts[0].trim().toLowerCase();
@@ -126,6 +144,10 @@ public final class ETPEventGenerator {
                              */
                             if(!headerKey.isEmpty()) {
                                 nextEventHeaders.put(headerKey, headerValue);
+                                if(nextEventHeaders.size() > Constants.ETP_PROTOCOL_MAX_HEADER_LINE_NUMBER) {
+                                    Utils.log("ETP Error: header line numbers exceeds the maximum value");
+                                    return false;
+                                }
                             }
                             nextHeaderLine = "";
                             availableDataLength = availableDataLength - ((lfFoundIndex - currentOffset) + 1);
@@ -136,16 +158,18 @@ public final class ETPEventGenerator {
                 howMuchDataBytesProcessed = length - availableDataLength;
             } else {
                 int requiredDataBytesLength = (nextEventDataBuffer.length - nextEventDataBufferIndex);
-                if (data.length >= requiredDataBytesLength) {
+                if (length >= requiredDataBytesLength) {
                     System.arraycopy(data, offset, nextEventDataBuffer, nextEventDataBufferIndex, requiredDataBytesLength);
                     howMuchDataBytesProcessed = requiredDataBytesLength;
                     boolean done = emitEventNow();
-                    if (!done)
+                    if (!done) {
+                        Utils.log("ETP Error: event could not be emitted");
                         return false;
+                    }
                 } else {
-                    System.arraycopy(data, offset, nextEventDataBuffer, nextEventDataBufferIndex, data.length);
-                    nextEventDataBufferIndex = nextEventDataBufferIndex + data.length;
-                    howMuchDataBytesProcessed = data.length;
+                    System.arraycopy(data, offset, nextEventDataBuffer, nextEventDataBufferIndex, length);
+                    nextEventDataBufferIndex = nextEventDataBufferIndex + length;
+                    howMuchDataBytesProcessed = length;
                 }
             }
 
@@ -226,15 +250,12 @@ public final class ETPEventGenerator {
                 return false;
             EventCallbacks.execute(eventCode, sslSocket, nextEventHeaders, nextEventDataBuffer);
 
-            nowNextEventGenerating = false;
-            nowHeadersGenerating = true;
-            howMuchDataBytesProcessed = 0;
+            nowNextEventGenerating = false; //Must for next event
+            nextHeaderLine = ""; //Free previous event headers line [optional]
+            nextEventHeaders = null; //Free previous event headers object [optional]
 
-            nextHeaderLine = "";
-            nextEventHeaders = null;
-
-            nextEventDataBuffer = null;
-            nextEventDataBufferIndex = 0;
+            this.nextEventDataBuffer = null; //Free previous event data object [optional]
+            this.nextEventDataBufferIndex = 0; //[optional]
 
             done = true;
         } catch (Exception exp) {

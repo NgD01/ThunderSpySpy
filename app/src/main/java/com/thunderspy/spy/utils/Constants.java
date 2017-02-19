@@ -10,15 +10,17 @@ public final class Constants {
     public static int MODULE_VERSION_CODE = 20171;
     public static String MODULE_NAME = "ThunderSpySpy";
 
-    public static String SERVER_HOST = "192.168.1.102";
+    public static String SERVER_HOST = "192.168.1.100";
     public static int SERVER_PORT = 8000;
 
     public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 10 * 1000;
     public static int INTERVAL_FOR_NEXT_START_SERVICE_MONITOR_SERVICE = 60 * 1000;
-    public static int SOCKET_STREAM_BUFFER_SIZE = 1024*1024;
+    public static int SOCKET_STREAM_BUFFER_SIZE = 1024 * 1024;
     public static String ETP_PROTOCOL_HEADER_NAME_EVENT_CODE = "Event-Code";
     public static String ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH = "Data-Length";
-    public static int ETP_PROTOCOL_MAX_EVENT_DATA_LENGTH = 1024 * 1024 * 10;
+    public static int ETP_PROTOCOL_MAX_EVENT_DATA_LENGTH = 1024 * 1024 * 5;
+    public static int ETP_PROTOCOL_MAX_HEADER_LINE_LENGTH = 1024 * 10;
+    public static int ETP_PROTOCOL_MAX_HEADER_LINE_NUMBER = 100;
 
     public static String SERVER_ACTUAL_CERTIFICATE_IN_STR = "-----BEGIN CERTIFICATE-----\n" +
             "MIIDiDCCAnACCQCvVofKjGN8NDANBgkqhkiG9w0BAQsFADCBhTELMAkGA1UEBhMC\n" +

