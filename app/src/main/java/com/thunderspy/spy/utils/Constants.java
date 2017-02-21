@@ -10,7 +10,7 @@ public final class Constants {
     public static int MODULE_VERSION_CODE = 20171;
     public static String MODULE_NAME = "ThunderSpySpy";
 
-    public static String SERVER_HOST = "192.168.1.100";
+    public static String SERVER_HOST = "192.168.0.108";
     public static int SERVER_PORT = 8000;
 
     public static int INTERVAL_FOR_NEXT_SERVER_CONNECTION = 10 * 1000;

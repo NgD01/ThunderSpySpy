@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             startService(new Intent(getApplicationContext(), MonitorService.class));
 
 
-            Utils.log("%s", null);
+            Utils.log("%s", 9798798);
 
         } catch (Exception exp) {
             Utils.log("Activity Error: %s", exp.getMessage());

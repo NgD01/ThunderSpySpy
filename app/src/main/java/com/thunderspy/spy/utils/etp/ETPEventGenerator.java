@@ -101,7 +101,7 @@ public final class ETPEventGenerator {
                             }
                             int safeEventDataLength = getSafeEventDataLength();
                             if (safeEventDataLength == -1) {
-                                Utils.log("ETP Error: event data length exceeds the maximum value");
+                                Utils.log("ETP Error: event data length exceeds the maximum value or invalid value");
                                 return false;
                             }
                             nextEventDataBuffer = new byte[safeEventDataLength];

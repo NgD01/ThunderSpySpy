@@ -28,11 +28,8 @@ public final class EventCallbacks {
             @Override
             public void run(SSLSocket socket, HashMap<String, String> headers, byte[] data) {
                 try {
-                    Utils.log(data.length);
-                    FileOutputStream fos = new FileOutputStream(Environment.getExternalStorageDirectory() + "/file");
-                    fos.write(data);
-                    fos.flush();
-                    fos.close();
+                    Utils.log(headers);
+                    Protocol.sendEvent(socket, "SS1", new HashMap<String, String>(), data);
                 } catch (Exception exp) {
                     Utils.log(exp.getMessage());
                 }

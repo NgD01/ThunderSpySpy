@@ -6,9 +6,12 @@ import com.thunderspy.spy.utils.Utils;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Policy;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.net.ssl.SSLSocket;
+import javax.sql.PooledConnection;
 
 /**
  * ETP stands for Event Transfer Protocol
@@ -18,7 +21,7 @@ import javax.net.ssl.SSLSocket;
 
 public final class Protocol {
 
-    public static void generateEvent(SSLSocket sslSocket) {
+    public static void generateEvent(final SSLSocket sslSocket) {
         InputStream is = null;
         OutputStream os = null;
         try {
@@ -61,6 +64,72 @@ public final class Protocol {
     }
 
 
+    /**
+     * All parameters are required
+     * @param sslSocket
+     * @param eventCode
+     * @param extraHeaders
+     * @param data
+     */
+    public static void sendEvent(SSLSocket sslSocket, String eventCode, HashMap<String, String> extraHeaders, byte[] data) {
+        OutputStream os = null;
+        try {
+
+            if (sslSocket.isClosed())
+                return;
+
+            os = sslSocket.getOutputStream();
+
+            String headersToBeSent = "";
+            headersToBeSent += String.format("%s: %s\n", Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_CODE, eventCode);
+            headersToBeSent += String.format("%s: %s\n", Constants.ETP_PROTOCOL_HEADER_NAME_EVENT_DATA_LENGTH, data.length);
+            for (Map.Entry<String, String> entry : extraHeaders.entrySet()) {
+                headersToBeSent += String.format("%s: %s\n", entry.getKey(), entry.getValue());
+            }
+            headersToBeSent += "\n";
+
+            synchronized (sslSocket) {
+                try {
+                    os.write(headersToBeSent.getBytes("UTF-8"));
+                    os.write(data);
+                    os.flush();
+                } catch (Exception exp) {
+                    Utils.log("Error in sending ETP Event: %s", exp.getMessage());
+                    try {
+                        try {
+                            if (os != null)
+                                os.flush();
+                        } catch (Exception exp1){}
+                        try {
+                            if (os != null)
+                                os.close();
+                        } catch (Exception exp1){}
+                        try {
+                            if (sslSocket != null)
+                                sslSocket.close();
+                        } catch (Exception exp1){}
+                    } catch (Exception exp1) {}
+                }
+            }
+
+        } catch (Exception exp) {
+            Utils.log("Error in sending ETP Event: %s", exp.getMessage());
+            try {
+                try {
+                    if (os != null)
+                        os.flush();
+                } catch (Exception exp1){}
+                try {
+                    if (os != null)
+                        os.close();
+                } catch (Exception exp1){}
+                try {
+                    if (sslSocket != null)
+                        sslSocket.close();
+                } catch (Exception exp1){}
+            } catch (Exception exp1) {}
+        }
+    }
 
 
 }
